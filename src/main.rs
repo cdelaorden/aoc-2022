@@ -4,15 +4,15 @@ mod day_one;
 mod day_two;
 mod day_three;
 mod day_four;
-
+mod day_five;
 
 fn main() {
     let data = input::read_input_file();   
     // day_one::get_elves_calories(data);
     // day_two::get_total_score(data);
     // day_three::sum_priorities(data);
-    day_four::camp_cleanup(data);
-    
+    // day_four::camp_cleanup(data);
+    day_five::get_top_of_stacks(data);
     
 }
 
