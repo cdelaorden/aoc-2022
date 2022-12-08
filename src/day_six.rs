@@ -2,16 +2,25 @@ use std::collections::HashSet;
 
 pub fn tuning_trouble (data:&str) {
   let buffer: Vec<char> = data.chars().collect();
-  for index in 0..buffer.len()-1 {
+  // part 1 - decode packet
+  for index in 0..buffer.len()-1 {    
     if index < 3 { continue; }
-    if are_all_different(buffer[index-3], buffer[index-2], buffer[index-1], buffer[index]){
-      println!("Found different at {}", index + 1);
+    if are_all_different(&buffer[index-3..=index], 4) {
+      println!("Packet marker at {}", index + 1);
+      break;
+    }
+  }
+  // part 2 - decode message
+  for index in 0..buffer.len()-1 {    
+    if index < 13 { continue; }
+    if are_all_different(&buffer[index-13..=index], 14) {
+      println!("Message marker at {}", index + 1);
       break;
     }
   }
 }
 
-fn are_all_different (a:char, b:char, c:char, d:char) -> bool {
-  let s = HashSet::from([a,b,c,d]);  
-  s.len() == 4
+fn are_all_different (chars: &[char], expected_size: usize) -> bool {
+  let s: HashSet<char> = HashSet::from_iter(chars.iter().cloned());  
+  s.len() == expected_size
 }
