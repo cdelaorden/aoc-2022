@@ -16,25 +16,49 @@ struct DirWithSize {
   total_size: u32
 }
 
+const TOTAL_SPACE: u32 = 70_000_000;
+const MIN_SPACE: u32 = 30_000_000;
+
 pub fn no_space_left (data: &str) {
   let lines: Vec<&str> = data.split_terminator('\n').collect();
   let parsed = parse_lines(lines);
   // println!("# lines {:?}", parsed);
   let tree = walk_tree(parsed);  
   // part one
-  calculate_candidates_for_deletion(tree);
+  calculate_candidates_for_deletion(&tree);
+  // part two
+  calculate_dir_to_remove(&tree);
 }
 
-fn calculate_candidates_for_deletion(tree:HashMap<String, u32>) {
-  // println!("Dir tree {:#?}", tree);
+fn calculate_candidates_for_deletion(tree: &HashMap<String, u32>) {
   let mut total = 0u32;
+  // println!("Full tree {:#?}", tree);
   for (_dir, size) in tree.iter() {
     if size <= &100_000 {
-      // println!("Adding dir {} with size {}", dir, size);
       total += size;
     } 
   }
   println!("Total for delete {}", total)
+}
+
+fn calculate_dir_to_remove(tree: &HashMap<String, u32>) {
+  let mut sizes_sorted: Vec<u32> = Vec::new();
+  let used_size = tree.get("/").expect("Root size not found");
+  let unused_size = TOTAL_SPACE - used_size;
+  let space_to_free = MIN_SPACE - unused_size;
+  // println!("Space needed to free {}", space_to_free);
+  for (dir, size) in tree.iter() {
+    if dir == "/" { continue };
+    sizes_sorted.push(*size);
+  }
+  sizes_sorted.sort();
+  // println!("Sorted sizes {:?}", sizes_sorted);
+  for dir_size in sizes_sorted {
+    if dir_size >= space_to_free {
+      println!("Dir to remove size {}", dir_size);
+      break;
+    }
+  }
 }
 
 fn walk_tree (tree: Vec<ParsedLine>) -> HashMap<String, u32>{
@@ -65,6 +89,9 @@ fn walk_tree (tree: Vec<ParsedLine>) -> HashMap<String, u32>{
           *path_info += file_size;
           path_copy.pop();
         }        
+        // add to root
+        let root_dir = result.entry(String::from("/")).or_insert(0);
+        *root_dir += file_size;
       }
       ParsedLine::List => {}
     }
