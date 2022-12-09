@@ -34,8 +34,11 @@ fn is_invisible (x: usize, y:usize, grid: &TreeGrid) -> bool {
   if x == 0 || x == grid_size - 1 { false }
   else if y == 0 || y == grid_size - 1 { false }
   else {    
-    let inv_left = grid[x][0..y].iter().find(|h| h >= tree_height);
-    inv_left.is_some()
+    let inv_left = grid[x][0..y].iter().find(|h| **h >= tree_height);
+    let inv_right = grid[x][y+1..].iter().find(|h| **h >= tree_height);
+    let inv_above = grid[0..x].iter().find(|h| h[y] >= tree_height);
+    let inv_below = grid[x+1..].iter().find(|h| h[y] >= tree_height);    
+    inv_left.is_some() && inv_right.is_some() && inv_above.is_some() && inv_below.is_some()
   }
 
 }
