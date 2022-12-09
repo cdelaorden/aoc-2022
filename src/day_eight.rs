@@ -4,6 +4,7 @@ pub fn treetop_tree_house (data:&str) {
   let grid = parse_grid(data);
   // println!("Grid is {:?}", grid);
   println!("Part one. Visible trees: {}", get_visible_tree_count(&grid));
+  println!("Part two. Best tree score is {}", get_highest_scenic_score(&grid));
 }
 
 fn get_visible_tree_count (grid: &TreeGrid) -> u32 {
@@ -24,6 +25,64 @@ fn get_visible_tree_count (grid: &TreeGrid) -> u32 {
   // Just for debugging
   // pretty_print_grid(visiblity_grid);
   visible_total
+}
+
+fn get_highest_scenic_score (grid: &TreeGrid) -> u32 {
+  let mut top_score: u32 = 0;
+  let mut score_grid: TreeGrid = Vec::new();
+  for x in 0..grid.len() {
+    score_grid.push(Vec::new());
+    for y in 0..grid[x].len() {
+      let tree_score = get_tree_scenic_score(x, y, grid);      
+      if tree_score > top_score {
+        top_score = tree_score;
+      }
+      score_grid[x].push(tree_score);
+    }
+  }
+  // pretty_print_grid(grid);
+  // println!("--------------");
+  // pretty_print_grid(&score_grid);
+  top_score
+}
+
+fn get_tree_scenic_score (x:usize, y:usize, grid: &TreeGrid) -> u32 {
+  let tree_height = grid[x][y];
+  // the trick here was to `rev`erse the the range so it calculates inside out
+  let (left_score, _left_blocked) = grid[x][0..y].iter().rev().fold((0, false), |acc, h| {
+    let (acc_height, blocked) = acc;
+    if blocked { acc }
+    else if h >= &tree_height {
+      (acc_height+1, true)
+    }
+    else { (acc_height+1, false) }
+  });
+  let (right_score, _right_blocked) = grid[x][y+1..].iter().fold((0, false), |acc, h| {
+    let (acc_height, blocked) = acc;
+    if blocked { acc }
+    else if h >= &tree_height {
+      (acc_height+1, true)
+    }
+    else { (acc_height+1, false) }    
+  });
+  // same here, reverse
+  let (top_score, _top_blocked) = grid[0..x].iter().rev().fold((0, false), |acc, col| {
+    let (acc_height, blocked) = acc;
+    if blocked { acc }
+    else if col[y] >= tree_height {
+      (acc_height+1, true)
+    }
+    else { (acc_height+1, false) }
+  });
+  let (bottom_score, _bottom_blocked) = grid[x+1..].iter().fold((0, false), |acc, col| {
+    let (acc_height, blocked) = acc;
+    if blocked { acc }
+    else if col[y] >= tree_height {
+      (acc_height+1, true)
+    }
+    else { (acc_height+1, false) }    
+  });  
+  left_score * right_score * top_score * bottom_score
 }
 
 fn is_invisible (x: usize, y:usize, grid: &TreeGrid) -> bool {
@@ -53,7 +112,7 @@ fn parse_grid(data:&str) -> Vec<Vec<u32>> {
   grid
 }
 
-fn pretty_print_grid<T> (grid: Vec<Vec<T>>) where T: std::fmt::Display {
+fn pretty_print_grid<T> (grid: &Vec<Vec<T>>) where T: std::fmt::Display {
   for x in 0..grid.len() {
     let mut row = String::from("");
     for y in 0..grid.len() {
