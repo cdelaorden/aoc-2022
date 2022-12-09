@@ -13,18 +13,16 @@ fn get_visible_tree_count (grid: &TreeGrid) -> u32 {
     visiblity_grid.push(Vec::new());
     for y in 0..grid[x].len() {         
       if is_invisible(x, y, grid) {
-        println!("Tree at {} {} height {} is INVISIBLE", x, y, grid[x][y]);
         visiblity_grid[x].push('I');        
       }      
       else {
-        println!("Tree at {} {} height {} is VISIBLE", x, y, grid[x][y]);
         visiblity_grid[x].push('V');
         visible_total += 1;
       }
     }
   }
-  // println!("Visiblity {:#?}", visiblity_grid);
-  pretty_print_grid(visiblity_grid);
+  // Just for debugging
+  // pretty_print_grid(visiblity_grid);
   visible_total
 }
 
