@@ -29,6 +29,26 @@ fn get_latest_knot_positions(movements: &Vec<HeadMovement>) -> u32 {
   // add starting pos to visited
   last_knot_positions.insert((0, 0));
   assert_eq!(tail_pos.len(), 9);
+
+  for mov in movements {
+    apply_movement(&mut head_pos, mov);
+    for i in 0..tail_pos.len() {
+      let knot_pos = tail_pos[i];
+      if i == 0 {
+        // first follow head
+        tail_pos[i] = follow(&head_pos, &knot_pos);
+      }
+      else {
+        // follow previous
+        tail_pos[i] = follow(&tail_pos[i-1], &knot_pos)
+      }
+      if i == tail_pos.len() - 1 {
+        // visit position only for last knot
+        last_knot_positions.insert(tail_pos[i].clone());
+      }
+    }
+  }
+
   last_knot_positions.len() as u32
 }
 
@@ -43,7 +63,7 @@ fn follow_head(movements: &Vec<HeadMovement>) -> u32 {
     // move head
     apply_movement(&mut head_pos, mov);
     // move tail if needed
-    follow(&head_pos, &mut tail_pos);
+    tail_pos = follow(&head_pos, &tail_pos);
     positions.insert(tail_pos);              
   }
   positions.len() as u32
@@ -58,28 +78,30 @@ fn apply_movement(pos: &mut Pos2D, mov:&HeadMovement) -> () {
   }
 }
 
-fn follow(source: &Pos2D, follower: &mut Pos2D) -> () {
+fn follow(source: &Pos2D, follower: &Pos2D) -> Pos2D {
+  let mut new_pos = follower.clone();
   if !is_adjacent(&source, &follower) {
     if source.0 < follower.0 {
       // move left
-      follower.0 -= 1;
+      new_pos.0 -= 1;
     }
     else if source.0 > follower.0 {
       // move right
-      follower.0 += 1;
+      new_pos.0 += 1;
     }
     if source.1 < follower.1 {
       // move up
-      follower.1 -= 1;
+      new_pos.1 -= 1;
     }
     else if source.1 > follower.1 {
       // move down
-      follower.1 += 1;
+      new_pos.1 += 1;
     }
     // println!("Move tail, new pos {:?}", tail_pos);
     // record position
-    // positions.insert(tail_pos);
+    // positions.insert(tail_pos);    
   }
+  new_pos
 }
 
 fn is_adjacent(a:&Pos2D, b:&Pos2D) -> bool {
