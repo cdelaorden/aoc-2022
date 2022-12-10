@@ -12,6 +12,8 @@ pub fn cathode_ray_tube(data:&str) {
   // println!("Program {:?}", instructions);
   println!("Output after 20 cycles {}", run(&instructions, 20));
   println!("Signal strength {}", get_signal_strength_sum(&instructions));
+  println!("--------");
+  draw_crt(&instructions);
 } 
 
 fn get_signal_strength_sum (instructions:&Vec<Instruction>) -> i32 {
@@ -22,6 +24,27 @@ fn get_signal_strength_sum (instructions:&Vec<Instruction>) -> i32 {
     strengths[i] = strength * *cycles as i32;
   }
   strengths.iter().sum()
+}
+
+fn draw_crt (instructions:&Vec<Instruction>) -> () {
+  let mut draw_index = 0;
+  let mut pixels: Vec<char> = Vec::new();
+  for cycle in 0..220 {
+    let x = run(instructions, cycle);
+    let sprite = [x-1, x, x+1];
+    println!("Drawing: {}. X: {:?}", draw_index, sprite);
+    if sprite.contains(&(&draw_index % 40)) {
+      pixels.push('#')
+    }
+    else {
+      pixels.push('.')  
+    }    
+    draw_index += 1;
+  }
+  // draw lines
+  for i in 0..5 {
+    println!("{}", &String::from_iter(pixels[i*40..(i+1)*40].iter()));   
+  }
 }
 
 fn run(instructions:&Vec<Instruction>, num_cycles:u32) -> i32 {
