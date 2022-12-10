@@ -31,7 +31,7 @@ fn get_latest_knot_positions(movements: &Vec<HeadMovement>) -> u32 {
   assert_eq!(tail_pos.len(), 9);
 
   for mov in movements {
-    apply_movement(&mut head_pos, mov);
+    head_pos = apply_movement(&head_pos, mov);
     for i in 0..tail_pos.len() {
       let knot_pos = tail_pos[i];
       if i == 0 {
@@ -61,7 +61,7 @@ fn follow_head(movements: &Vec<HeadMovement>) -> u32 {
   for mov in movements {
     // println!("Head pos {:?}. Move {:?}", head_pos, mov);
     // move head
-    apply_movement(&mut head_pos, mov);
+    head_pos = apply_movement(&head_pos, mov);
     // move tail if needed
     tail_pos = follow(&head_pos, &tail_pos);
     positions.insert(tail_pos);              
@@ -69,13 +69,15 @@ fn follow_head(movements: &Vec<HeadMovement>) -> u32 {
   positions.len() as u32
 }
 
-fn apply_movement(pos: &mut Pos2D, mov:&HeadMovement) -> () {
+fn apply_movement(pos: &Pos2D, mov:&HeadMovement) -> Pos2D {
+  let mut new_pos = pos.clone();
   match mov {
-    HeadMovement::Right => pos.0 = pos.0 + 1,
-    HeadMovement::Left => pos.0 = pos.0 - 1,
-    HeadMovement::Up => pos.1 = pos.1 - 1,
-    HeadMovement::Down => pos.1 = pos.1 + 1,
+    HeadMovement::Right => new_pos.0 = new_pos.0 + 1,
+    HeadMovement::Left => new_pos.0 = new_pos.0 - 1,
+    HeadMovement::Up => new_pos.1 = new_pos.1 - 1,
+    HeadMovement::Down => new_pos.1 = new_pos.1 + 1,
   }
+  new_pos
 }
 
 fn follow(source: &Pos2D, follower: &Pos2D) -> Pos2D {
