@@ -10,24 +10,23 @@ enum Instruction {
 pub fn cathode_ray_tube(data:&str) {
   let instructions = parse_instructions(data);
   // println!("Program {:?}", instructions);
-  println!("Output after 20 cycles {}", run(&instructions, 1, 0, 20));
+  println!("Output after 20 cycles {}", run(&instructions, 20));
   println!("Signal strength {}", get_signal_strength_sum(&instructions));
 } 
 
 fn get_signal_strength_sum (instructions:&Vec<Instruction>) -> i32 {
   let sample_at = [20, 60, 100, 140, 180, 220];
-  let mut strengths = [1, 1, 1, 1, 1, 1];
-  let mut x = 1;
+  let mut strengths = [0, 0, 0, 0, 0, 0];
   for (i, cycles) in sample_at.iter().enumerate() {
-    x = run(instructions, x, 0, *cycles);
-    strengths[i] = x * *cycles as i32;
+    let strength = run(instructions, *cycles);
+    strengths[i] = strength * *cycles as i32;
   }
   strengths.iter().sum()
 }
 
-fn run(instructions:&Vec<Instruction>, initial_x: i32, instruction_index: usize, num_cycles:u32) -> i32 {
-  let mut x: i32 = initial_x;
-  let mut current_index = instruction_index;
+fn run(instructions:&Vec<Instruction>, num_cycles:u32) -> i32 {
+  let mut x: i32 = 1;
+  let mut current_index = 0;
   let mut wait = 0;
   let mut next_value: i32 = 1;
   for _i in 0..num_cycles {
