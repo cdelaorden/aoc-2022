@@ -14,7 +14,22 @@ pub fn rope_bridge(data: &str) {
   let head_movements = parse_movements(data);
   // println!("{:?}", head_movements);
   let tail_positions = follow_head(&head_movements);
-  println!("Tail positions {}", tail_positions);
+  println!("Part 1. Tail positions {}", tail_positions);
+  println!("Part 2. Last knot positions {}", get_latest_knot_positions(&head_movements));
+}
+
+fn get_latest_knot_positions(movements: &Vec<HeadMovement>) -> u32 {
+  let mut head_pos:Pos2D = (0, 0);
+  let mut tail_pos:Vec<Pos2D> = Vec::new();
+  let mut last_knot_positions:HashSet<Pos2D> = HashSet::new();
+  // create tail
+  for _i in 0..9 {
+    tail_pos.push(head_pos.clone());
+  }
+  // add starting pos to visited
+  last_knot_positions.insert((0, 0));
+  assert_eq!(tail_pos.len(), 9);
+  last_knot_positions.len() as u32
 }
 
 fn follow_head(movements: &Vec<HeadMovement>) -> u32 {
@@ -26,36 +41,45 @@ fn follow_head(movements: &Vec<HeadMovement>) -> u32 {
   for mov in movements {
     // println!("Head pos {:?}. Move {:?}", head_pos, mov);
     // move head
-    match mov {
-      HeadMovement::Right => head_pos.0 = head_pos.0 + 1,
-      HeadMovement::Left => head_pos.0 = head_pos.0 - 1,
-      HeadMovement::Up => head_pos.1 = head_pos.1 - 1,
-      HeadMovement::Down => head_pos.1 = head_pos.1 + 1,
-    }
+    apply_movement(&mut head_pos, mov);
     // move tail if needed
-    if !is_adjacent(&head_pos, &tail_pos) {
-      if head_pos.0 < tail_pos.0 {
-        // move left
-        tail_pos.0 -= 1;
-      }
-      else if head_pos.0 > tail_pos.0 {
-        // move right
-        tail_pos.0 += 1;
-      }
-      if head_pos.1 < tail_pos.1 {
-        // move up
-        tail_pos.1 -= 1;
-      }
-      else if head_pos.1 > tail_pos.1 {
-        // move down
-        tail_pos.1 += 1;
-      }
-      // println!("Move tail, new pos {:?}", tail_pos);
-      // record position
-      positions.insert(tail_pos);
-    }
+    follow(&head_pos, &mut tail_pos);
+    positions.insert(tail_pos);              
   }
   positions.len() as u32
+}
+
+fn apply_movement(pos: &mut Pos2D, mov:&HeadMovement) -> () {
+  match mov {
+    HeadMovement::Right => pos.0 = pos.0 + 1,
+    HeadMovement::Left => pos.0 = pos.0 - 1,
+    HeadMovement::Up => pos.1 = pos.1 - 1,
+    HeadMovement::Down => pos.1 = pos.1 + 1,
+  }
+}
+
+fn follow(source: &Pos2D, follower: &mut Pos2D) -> () {
+  if !is_adjacent(&source, &follower) {
+    if source.0 < follower.0 {
+      // move left
+      follower.0 -= 1;
+    }
+    else if source.0 > follower.0 {
+      // move right
+      follower.0 += 1;
+    }
+    if source.1 < follower.1 {
+      // move up
+      follower.1 -= 1;
+    }
+    else if source.1 > follower.1 {
+      // move down
+      follower.1 += 1;
+    }
+    // println!("Move tail, new pos {:?}", tail_pos);
+    // record position
+    // positions.insert(tail_pos);
+  }
 }
 
 fn is_adjacent(a:&Pos2D, b:&Pos2D) -> bool {
