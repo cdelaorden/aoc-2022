@@ -9,20 +9,12 @@ pub fn monkey_in_the_middle (data:&str) {
   // part 1 - monkey business
   for _i in 0..20 {
     play_round(&mut monkeys, true, 0);
-    // println!("After 20 round, {:#?}", monkeys);
   }
   println!("Monkey business part 1 {}", get_monkey_business(&monkeys));
   // part 2
   let mut monkeys2 = parse_data(data);
   for _round in 0..10000 {
     play_round(&mut monkeys2, false, lcm);
-    // println!("Playing round {}", round+1);
-    // if log_rounds.contains(&(round+1)){
-    //   println!("After round {}", round+1);    
-    //   for i in 0..monkeys2.len() {
-    //     println!("Monkey {} inspected {} items. {:?}", i, monkeys2[i].inspected, monkeys2[i].items);
-    //   }
-    // }
   } 
   println!("Monkey business part 2 {}", get_monkey_business(&monkeys2)); 
 }
@@ -55,16 +47,16 @@ fn play_round(monkeys:&mut Vec<Monkey>, use_relief: bool, lcm: i64) {
       }
       // where to throw
       if (worry_level % monkey.divisible_by) == 0 {
-        moved_items.push((item_index, monkey.if_true_target, worry_level));
+        moved_items.push((monkey.if_true_target, worry_level));
       }
       else {
-        moved_items.push((item_index, monkey.if_false_target, worry_level));
+        moved_items.push((monkey.if_false_target, worry_level));
       } 
-      monkey.inspected += 1;
     }
-    moved_items.iter().enumerate().for_each(|(index, (original_index, target, num))|{
+    monkey.inspected += monkey.items.len() as u32;
+    monkey.items.clear();
+    moved_items.iter().for_each(|(target, num)|{
       let _ = &monkeys[*target].items.push(*num);      
-      let _ = &monkeys[i].items.remove(*original_index-index);      
     })
   }
 }
@@ -77,7 +69,7 @@ fn get_monkey_business (monkeys:&Vec<Monkey>) -> i64 {
 
   inspected_values.sort();
   inspected_values.reverse();
-  println!("Sorted inspected {:?}", inspected_values);
+  // println!("Sorted inspected {:?}", inspected_values);
   inspected_values[0] as i64 * inspected_values[1]  as i64 
 }
 
@@ -112,18 +104,15 @@ fn get_lcm (monkeys:&Vec<Monkey>) -> i64 {
 fn parse_data (data: &str) -> Vec<Monkey> {
   data.split_terminator("\n\n").map(|monkey_data|{
     let mut lines = monkey_data.split_terminator("\n");
-    // skip first line
+    // skip first line with Monkey N:
     lines.next();
-    // extract items
     let monkey_items = extract_items(lines.next());    
-    // extract operation
     let (operator, operand) = extract_operation(lines.next());
-    // extract divisible by
     let divisible_by = extract_div_by(lines.next());
     let if_true_target = extract_throw_target(lines.next());
     let if_false_target = extract_throw_target(lines.next());
-    // extract if_true_target
-    // extract if_false_target
+    // would have been much better with a closure for the operation
+    // but couldn´t make the types work
     Monkey {
       items: monkey_items,
       operand,
