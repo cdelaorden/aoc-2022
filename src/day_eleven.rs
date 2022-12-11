@@ -1,61 +1,75 @@
 // https://adventofcode.com/2022/day/11
 
+use num_integer;
+
 pub fn monkey_in_the_middle (data:&str) {
   let mut monkeys = parse_data(data);
-  println!("{:#?}", monkeys);
-  
+  // println!("{:#?}", monkeys);
+  let lcm = get_lcm(&monkeys);
   // part 1 - monkey business
   for _i in 0..20 {
-    play_round(&mut monkeys);
+    play_round(&mut monkeys, true, 0);
     // println!("After 20 round, {:#?}", monkeys);
-    println!("Monkey business {}", get_monkey_business(&monkeys));
   }
+  println!("Monkey business part 1 {}", get_monkey_business(&monkeys));
+  // part 2
+  let mut monkeys2 = parse_data(data);
+  for _round in 0..10000 {
+    play_round(&mut monkeys2, false, lcm);
+    // println!("Playing round {}", round+1);
+    // if log_rounds.contains(&(round+1)){
+    //   println!("After round {}", round+1);    
+    //   for i in 0..monkeys2.len() {
+    //     println!("Monkey {} inspected {} items. {:?}", i, monkeys2[i].inspected, monkeys2[i].items);
+    //   }
+    // }
+  } 
+  println!("Monkey business part 2 {}", get_monkey_business(&monkeys2)); 
 }
 
 #[derive(Debug)]
 struct Monkey 
 {
-  items: Vec<i32>,
+  items: Vec<i64>,
   operator: char,
   operand: String,
-  divisible_by: i32,
+  divisible_by: i64,
   if_true_target: usize,
   if_false_target: usize,
   inspected: u32
 }
 const OLD: &str = "old";
 
-fn play_round(monkeys:&mut Vec<Monkey>) {
+fn play_round(monkeys:&mut Vec<Monkey>, use_relief: bool, lcm: i64) {
   for i in 0..monkeys.len() {
-    let monkey = &monkeys[i];  
+    let monkey = &mut monkeys[i];  
     let mut moved_items = vec![]; 
     for item_index in 0..monkey.items.len() {
       let item = &monkey.items[item_index];
-      let mut worry_level = match (monkey.operator, &monkey.operand) {
-          ('+', _) if monkey.operand == OLD => item + item,
-          ('*', _) if monkey.operand == OLD => item * item,
-          ('+', number_str) => item + i32::from_str_radix(&number_str, 10).unwrap_or_default(),
-          ('*', number_str) => item * i32::from_str_radix(&number_str, 10).unwrap_or_default(),
-          _ => *item
-      };
-      worry_level = worry_level / 3;
+      let worry_level: i64;
+      if use_relief {
+        worry_level = apply_monkey_with_divide(monkey, *item);
+      } 
+      else {
+        worry_level = apply_monkey_with_modulo(monkey, *item, lcm);
+      }
       // where to throw
       if (worry_level % monkey.divisible_by) == 0 {
         moved_items.push((item_index, monkey.if_true_target, worry_level));
       }
       else {
         moved_items.push((item_index, monkey.if_false_target, worry_level));
-      }            
+      } 
+      monkey.inspected += 1;
     }
     moved_items.iter().enumerate().for_each(|(index, (original_index, target, num))|{
       let _ = &monkeys[*target].items.push(*num);      
-      let _ = &monkeys[i].items.remove(*original_index-index);
-      let _ = monkeys[i].inspected += 1;
+      let _ = &monkeys[i].items.remove(*original_index-index);      
     })
   }
 }
 
-fn get_monkey_business (monkeys:&Vec<Monkey>) -> u32 {
+fn get_monkey_business (monkeys:&Vec<Monkey>) -> i64 {
   // get the top monkeys by inspected, and multiply those values
   let mut inspected_values: Vec<u32> = monkeys.iter()
     .map(|m| m.inspected)
@@ -64,7 +78,35 @@ fn get_monkey_business (monkeys:&Vec<Monkey>) -> u32 {
   inspected_values.sort();
   inspected_values.reverse();
   println!("Sorted inspected {:?}", inspected_values);
-  inspected_values[0] * inspected_values[1]  
+  inspected_values[0] as i64 * inspected_values[1]  as i64 
+}
+
+fn apply_monkey_with_divide(monkey: &Monkey, value: i64) -> i64 {
+  let worry_level = match (monkey.operator, &monkey.operand) {
+    ('+', _) if monkey.operand == OLD => value + value,
+    ('*', _) if monkey.operand == OLD => value * value,
+    ('+', number_str) => value + i64::from_str_radix(&number_str, 10).unwrap_or_default(),
+    ('*', number_str) => value * i64::from_str_radix(&number_str, 10).unwrap_or_default(),
+    _ => value  
+  };
+  worry_level / 3
+}
+
+fn apply_monkey_with_modulo(monkey: &Monkey, value: i64, modulo: i64) -> i64 {
+  let worry_level = match (monkey.operator, &monkey.operand) {
+    ('+', _) if monkey.operand == OLD => (value % modulo) * 2,
+    ('*', _) if monkey.operand == OLD => (value % modulo) * (value % modulo),
+    ('+', number_str) => (value % modulo) + (i64::from_str_radix(&number_str, 10).unwrap_or_default() % modulo),
+    ('*', number_str) => (value % modulo) * (i64::from_str_radix(&number_str, 10).unwrap_or_default() % modulo),
+    _ => panic!("Apply monkey match failed")  
+  };
+  worry_level % modulo
+}
+
+fn get_lcm (monkeys:&Vec<Monkey>) -> i64 {
+  monkeys.iter()
+    .map(|m| m.divisible_by)
+    .reduce(|acc,n| num_integer::lcm(acc, n)).unwrap()
 }
 
 fn parse_data (data: &str) -> Vec<Monkey> {
@@ -94,7 +136,7 @@ fn parse_data (data: &str) -> Vec<Monkey> {
   }).collect()
 }
 
-fn extract_items (items_text: Option<&str>) -> Vec<i32> {
+fn extract_items (items_text: Option<&str>) -> Vec<i64> {
   if items_text.is_none() {
     vec![]
   }
@@ -103,7 +145,7 @@ fn extract_items (items_text: Option<&str>) -> Vec<i32> {
       .split_whitespace()
       .skip(2)
       .map(|item_with_comma| {
-        i32::from_str_radix(&item_with_comma.replace(",", ""), 10).expect("Invalid item")
+        i64::from_str_radix(&item_with_comma.replace(",", ""), 10).expect("Invalid item")
       })
       .collect()
   }
@@ -121,7 +163,7 @@ fn extract_operation(op_text: Option<&str>) -> (char, String) {
   (operator.chars().nth(0).expect("Invalid operator"), String::from(operand))
 }
 
-fn extract_div_by (op_text: Option<&str>) -> i32 {
+fn extract_div_by (op_text: Option<&str>) -> i64 {
   if op_text.is_none() { return 1 }
   let number_str = op_text
     .unwrap()
@@ -129,7 +171,7 @@ fn extract_div_by (op_text: Option<&str>) -> i32 {
     .last()
     .expect("Missing div by number");
     
-  i32::from_str_radix(number_str, 10).expect("Error parsing div by")
+  i64::from_str_radix(number_str, 10).expect("Error parsing div by")
 }
 
 fn extract_throw_target(target: Option<&str>) -> usize {
