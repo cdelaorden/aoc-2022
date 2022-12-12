@@ -11,6 +11,7 @@ mod day_eight;
 mod day_nine;
 mod day_ten;
 mod day_eleven;
+mod day_twelve;
 fn main() {
     let data = input::read_input_file();   
     // day_one::get_elves_calories(data);
@@ -23,7 +24,8 @@ fn main() {
     // day_eight::treetop_tree_house(&data);
     // day_nine::rope_bridge(&data);
     // day_ten::cathode_ray_tube(&data);
-    day_eleven::monkey_in_the_middle(&data);
+    // day_eleven::monkey_in_the_middle(&data);
+    day_twelve::hill_climbing_algorithm(&data);
     
 }
 
