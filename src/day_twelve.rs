@@ -12,25 +12,27 @@ fn find_path(
   map: &HeightMap
 
 ) -> Option<usize> {
+  // keeps track of already visited points
   let mut visited: HashSet<Point> = HashSet::new();
-  
+  // stores pending points to visit
   let mut queue = VecDeque::new();
   let current = map.start;
   queue.push_back((current, Vec::new()));
 
+  // checks height
   let is_allowed = |to_height:u8, from_height:u8| {
     to_height <= from_height + 1
   };
-
+  // loop while there are points to check in the queue
   while !queue.is_empty() {
     let (current, history) = queue.pop_front().unwrap();
     if (current == map.end) {
       return Some(history.len());
     }
-    // println!("Checking {:?} with history {:?}", current, history);
 
     let current_height = map.data[current.y][current.x];
-
+    // closure to be able to use visited Set, removes points
+    // outside the map. it has to be mutable because it's re-defined on each loop
     let mut check_neighbour = |x:usize, y:usize| {
       if x >= map.data[0].len()
         || y >= map.data.len()
@@ -60,6 +62,7 @@ struct HeightMap {
   start: Point,
   end: Point
 }
+// without Hash trait it cannot be added to HashSet
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 struct Point {
   x: usize,
