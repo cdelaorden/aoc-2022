@@ -1,16 +1,31 @@
 use std::collections::{HashSet, VecDeque};
 
 pub fn hill_climbing_algorithm (data: &str) {
-  let map = parse(&data);
-  // println!("Map {:#?}", map);
-  // // part 1
-  let min_distance = find_path(&map);
-  println!("Min distance is {:?}", min_distance);
+  let mut map = parse(&data);
+  // part 1
+  let min_distance = find_path(
+    &map, 
+    |p| { map.end == p },
+    false
+  );
+  println!("Part One. Min distance is {:?}", min_distance);
+  // part 2 start from end, and define "ending" as any point with height 0
+  // since the find_path gets the shortest path already
+  // it also means that the height must be inverted!
+  map.start = map.end;
+  let min_distance_to_an_a = find_path(
+    &map, 
+    |p| { map.data[p.y][p.x] == 0},
+    true
+  );
+  println!("Part Two. Min distance from any a {:?}", min_distance_to_an_a);
+
 }
 
 fn find_path(
-  map: &HeightMap
-
+  map: &HeightMap, 
+  is_solution: impl Fn(Point) -> bool,
+  invert_height_check: bool
 ) -> Option<usize> {
   // keeps track of already visited points
   let mut visited: HashSet<Point> = HashSet::new();
@@ -21,12 +36,18 @@ fn find_path(
 
   // checks height
   let is_allowed = |to_height:u8, from_height:u8| {
-    to_height <= from_height + 1
+    if invert_height_check {
+      from_height <= to_height + 1
+    }
+    else {
+      to_height <= from_height + 1
+    }
   };
   // loop while there are points to check in the queue
   while !queue.is_empty() {
     let (current, history) = queue.pop_front().unwrap();
-    if (current == map.end) {
+    if is_solution(current) {
+      // println!("Got solution {:?}", history);
       return Some(history.len());
     }
 
