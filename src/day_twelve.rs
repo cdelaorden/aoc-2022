@@ -96,7 +96,7 @@ impl Point {
 }
 
 fn parse(data:&str) -> HeightMap {
-  let mut out = Vec::new();
+  let mut map_rows = Vec::new();
   let mut start = Point::new(0, 0);
   let mut end = Point::new(0, 0);
 
@@ -106,18 +106,18 @@ fn parse(data:&str) -> HeightMap {
       match j {
         'S' => {
           row.push(0);
-          start = Point::new(row.len() - 1, out.len());
+          start = Point::new(row.len() - 1, map_rows.len());
         },
         'E' => {
           row.push(25);
-          end = Point::new(row.len() - 1, out.len());
+          end = Point::new(row.len() - 1, map_rows.len());
         },
         _ => row.push(j as u8 - 97)
       }
     }
-    out.push(row);
+    map_rows.push(row);
   }
-  HeightMap { data: out, start: start, end: end }
+  HeightMap { data: map_rows, start: start, end: end }
 }
 
 #[cfg(test)]
