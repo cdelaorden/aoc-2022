@@ -1,31 +1,25 @@
-#![allow(dead_code)]
-mod input;
-mod day_one;
-mod day_two;
-mod day_three;
-mod day_four;
-mod day_five;
-mod day_six;
-mod day_seven;
-mod day_eight;
-mod day_nine;
-mod day_ten;
-mod day_eleven;
-mod day_twelve;
+use aoc_2022::read_input_file;
+mod year_2022;
+
 fn main() {
-    let data = input::read_input_file();   
-    // day_one::get_elves_calories(data);
-    // day_two::get_total_score(data);
-    // day_three::sum_priorities(data);
-    // day_four::camp_cleanup(data);
-    // day_five::get_top_of_stacks(data);
-    // day_six::tuning_trouble(&data);
-    // day_seven::no_space_left(&data)
-    // day_eight::treetop_tree_house(&data);
-    // day_nine::rope_bridge(&data);
-    // day_ten::cathode_ray_tube(&data);
-    // day_eleven::monkey_in_the_middle(&data);
-    day_twelve::hill_climbing_algorithm(&data);
-    
+    let (day, data) = read_input_file();   
+    match day {
+        1 => year_2022::day_one::get_elves_calories(&data),
+        2 => year_2022::day_two::get_total_score(&data),
+        3 => year_2022::day_three::sum_priorities(&data),
+        4 => year_2022::day_four::camp_cleanup(&data),
+        5 => year_2022::day_five::get_top_of_stacks(&data),
+        6 => year_2022::day_six::tuning_trouble(&data),
+        7 => year_2022::day_seven::no_space_left(&data),
+        8 => year_2022::day_eight::treetop_tree_house(&data),
+        9 => year_2022::day_nine::rope_bridge(&data),
+        10 => year_2022::day_ten::cathode_ray_tube(&data),
+        11 => year_2022::day_eleven::monkey_in_the_middle(&data),
+        12 => year_2022::day_twelve::hill_climbing_algorithm(&data),
+        other => {
+            println!("{}", format!("Exercise {} not found", other));
+            std::process::exit(1);
+        }
+    }        
 }
 

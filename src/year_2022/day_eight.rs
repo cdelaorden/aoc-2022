@@ -1,10 +1,11 @@
+#![allow(dead_code)]
 type TreeGrid = Vec<Vec<u32>>;
 
 pub fn treetop_tree_house (data:&str) {
   let grid = parse_grid(data);
   // println!("Grid is {:?}", grid);
-  println!("Part one. Visible trees: {}", get_visible_tree_count(&grid));
-  println!("Part two. Best tree score is {}", get_highest_scenic_score(&grid));
+  println!("Part One. Visible trees: {}", get_visible_tree_count(&grid));
+  println!("Part Two. Best tree score is {}", get_highest_scenic_score(&grid));
 }
 
 fn get_visible_tree_count (grid: &TreeGrid) -> u32 {
@@ -111,6 +112,7 @@ fn parse_grid(data:&str) -> Vec<Vec<u32>> {
   }
   grid
 }
+
 
 fn pretty_print_grid<T> (grid: &Vec<Vec<T>>) where T: std::fmt::Display {
   for x in 0..grid.len() {

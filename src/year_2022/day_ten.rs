@@ -11,10 +11,10 @@ pub fn cathode_ray_tube(data:&str) {
   let instructions = parse_instructions(data);
   // println!("Program {:?}", instructions);  
   println!("Output after 20 cycles {}", run(&instructions, 20).0);
-  println!("Signal strength {}", get_signal_strength_sum(&instructions));
+  println!("Part One. Signal strength {}", get_signal_strength_sum(&instructions));
   println!("--------");
   let (_, crt) = run(&instructions, 240);
-  println!("{}", crt);
+  println!("Part Two\n{}", crt);
 } 
 
 fn get_signal_strength_sum (instructions:&Vec<Instruction>) -> i32 {
@@ -59,7 +59,7 @@ fn run(instructions:&Vec<Instruction>, num_cycles:u32) -> (i32, String) {
       crt.push('#');
     }
     else {
-      crt.push('.');
+      crt.push(' ');
     }
     if i > 0 && (i+1) % 40 == 0 {
       crt.push('\n');

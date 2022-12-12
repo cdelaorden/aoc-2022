@@ -14,8 +14,8 @@ pub fn rope_bridge(data: &str) {
   let head_movements = parse_movements(data);
   // println!("{:?}", head_movements);
   let tail_positions = follow_head(&head_movements);
-  println!("Part 1. Tail positions {}", tail_positions);
-  println!("Part 2. Last knot positions {}", get_latest_knot_positions(&head_movements));
+  println!("Part One. Tail positions {}", tail_positions);
+  println!("Part Two. Last knot positions {}", get_latest_knot_positions(&head_movements));
 }
 
 fn get_latest_knot_positions(movements: &Vec<HeadMovement>) -> u32 {

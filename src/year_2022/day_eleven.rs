@@ -10,13 +10,13 @@ pub fn monkey_in_the_middle (data:&str) {
   for _i in 0..20 {
     play_round(&mut monkeys, true, 0);
   }
-  println!("Monkey business part 1 {}", get_monkey_business(&monkeys));
+  println!("Part One. Monkey business {}", get_monkey_business(&monkeys));
   // part 2
   let mut monkeys2 = parse_data(data);
   for _round in 0..10000 {
     play_round(&mut monkeys2, false, lcm);
   } 
-  println!("Monkey business part 2 {}", get_monkey_business(&monkeys2)); 
+  println!("Part Two. Monkey business {}", get_monkey_business(&monkeys2)); 
 }
 
 #[derive(Debug)]

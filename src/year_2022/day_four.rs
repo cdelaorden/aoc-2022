@@ -1,6 +1,6 @@
 type Section = (u32, u32);
 
-pub fn camp_cleanup(data:String) -> () {
+pub fn camp_cleanup(data:&str) -> () {
   let pairs: Vec<(Section, Section)> = data.split_terminator("\n")
   .map(|line| {
     let sections: Vec<&str> = line.split(",").collect();
@@ -19,7 +19,7 @@ pub fn camp_cleanup(data:String) -> () {
       acc
     }
   });
-  println!("Part 1 - Total fully contained {}", total_fully_contained);
+  println!("Part One - Total fully contained {}", total_fully_contained);
   // part 2
   let total_overlapping: i32 = pairs.iter().fold(0, |acc, section_pair|{    
     if overlaps(section_pair.0, section_pair.1) || overlaps(section_pair.1, section_pair.0) {
@@ -30,7 +30,7 @@ pub fn camp_cleanup(data:String) -> () {
       acc
     }
   });
-  println!("Part 2 - Total overlapping {}", total_overlapping);
+  println!("Part Two - Total overlapping {}", total_overlapping);
 }
 
 fn parse_section (x: &str) -> (u32, u32) {

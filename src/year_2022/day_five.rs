@@ -1,19 +1,22 @@
 use std::collections::{HashMap};
 
-pub fn get_top_of_stacks(data:String) -> () {
+pub fn get_top_of_stacks(data:&str) -> () {
   let parts: Vec<&str> = data.split("\n\n").collect();
   let diagram = parts.first().expect("Diagram not found in input file");
   let instructions = parts.last().expect("Move instructions not found in input file");
   // println!("Diagram {:#?}", diagram);
   let stacks = setup_stacks(diagram);
+  let stacks_2 = stacks.clone();
   let commands = parse_commands(instructions);
   // part 1 
-  // interpret(stacks, commands, false);
+  println!("Part One");
+  interpret(stacks, &commands, false);
   // part 2
-  interpret(stacks, commands, true);
+  println!("Part Two");
+  interpret(stacks_2, &commands, true);
 }
 
-fn interpret(mut stacks: HashMap<String, Vec<char>>, commands: Vec<Command>, move_in_order: bool) -> () {
+fn interpret(mut stacks: HashMap<String, Vec<char>>, commands: &Vec<Command>, move_in_order: bool) -> () {
   let mut result: String = String::new();
   commands.iter().for_each(|cmd| {
     // println!("Executing {:?}", cmd);

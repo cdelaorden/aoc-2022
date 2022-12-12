@@ -1,20 +1,20 @@
 
-pub fn get_total_score (data:String) -> i32 {
+pub fn get_total_score (data:&str) {
   let lines:Vec<&str> = data.split_terminator("\n").collect();
   let matches: Vec<Vec<char>> = lines.iter().map(|line| {
     return line.chars().collect();
   }).collect();
   // first part, get total results
-  // let results = matches.iter().fold(0, |acc, m| 
-  //   acc + play_game(m[0], m[2])
-  // );
+  let results = matches.iter().fold(0, |acc, m| 
+    acc + play_game(m[0], m[2])
+  );
+  println!("Part one: {}", results);
   // second part, calculate what's needed to get the results
   let results = matches.iter().fold(0, |acc, m| {
     let needed = show_needed(m[0], m[2]);
     acc + play_game(m[0], hand_to_char(needed))
   });
-  println!("Result {}", results);
-  results
+  println!("part Two {}", results);
 }
 
 #[derive(Debug)]

@@ -6,7 +6,7 @@ pub fn tuning_trouble (data:&str) {
   for index in 0..buffer.len()-1 {    
     if index < 3 { continue; }
     if are_all_different(&buffer[index-3..=index], 4) {
-      println!("Packet marker at {}", index + 1);
+      println!("Part One. Packet marker at {}", index + 1);
       break;
     }
   }
@@ -14,7 +14,7 @@ pub fn tuning_trouble (data:&str) {
   for index in 0..buffer.len()-1 {    
     if index < 13 { continue; }
     if are_all_different(&buffer[index-13..=index], 14) {
-      println!("Message marker at {}", index + 1);
+      println!("Part Two. Message marker at {}", index + 1);
       break;
     }
   }

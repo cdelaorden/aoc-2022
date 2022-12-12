@@ -11,11 +11,6 @@ enum ParsedLine {
   File(String, u32)
 }
 
-struct DirWithSize {
-  path: String,
-  total_size: u32
-}
-
 const TOTAL_SPACE: u32 = 70_000_000;
 const MIN_SPACE: u32 = 30_000_000;
 
@@ -38,7 +33,7 @@ fn calculate_candidates_for_deletion(tree: &HashMap<String, u32>) {
       total += size;
     } 
   }
-  println!("Total for delete {}", total)
+  println!("Part One. Total for delete {}", total)
 }
 
 fn calculate_dir_to_remove(tree: &HashMap<String, u32>) {
@@ -55,7 +50,7 @@ fn calculate_dir_to_remove(tree: &HashMap<String, u32>) {
   // println!("Sorted sizes {:?}", sizes_sorted);
   for dir_size in sizes_sorted {
     if dir_size >= space_to_free {
-      println!("Dir to remove size {}", dir_size);
+      println!("Part Two. Dir to remove size {}", dir_size);
       break;
     }
   }
