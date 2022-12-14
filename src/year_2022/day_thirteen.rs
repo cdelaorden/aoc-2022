@@ -3,9 +3,10 @@ pub fn distress_signal(data: &str) {
   let pairs = parse(data);
   let mut in_order_indices = 0;
   pairs.iter().enumerate().for_each(|(idx, pair)| {
-    if is_right_order(&pair.0, &pair.1){
-      println!("Right order at {}", idx+1);
-      in_order_indices += (idx + 1);
+    let ordered = is_right_order(&eval(&pair.0), &eval(&pair.1));
+    if let Some(true) = ordered {
+      // println!("Right order at {}", idx+1);
+      in_order_indices += idx + 1;
     }
   });
   println!("Part One. Sum of correct pair idx: {}", in_order_indices);
@@ -56,66 +57,75 @@ fn parse_list (contents:&str) -> Vec<Token> {
   
 }
 
-fn is_right_order(first:&Vec<Token>, second: &Vec<Token>) -> bool {
-  let mut x1 = 0;
-  let mut x2 = 0;
-  let mut left = first.clone();
-  let mut right = second.clone();
-  // println!("Is right order {:?}, {:?}", first, second);
-  loop {
-    let left_i = first.get(x1);
-    let right_i = second.get(x2);
-    // println!("Comparing {:?} vs {:?} ({}, {})", left_i, right_i, x1, x2);
-    // left ends first
-    if left_i.is_none() && right_i.is_some() { 
-      // println!("Left finished");
-      return true 
-    };
-    // right ends first
-    if right_i.is_none() { return false; }
-    match (left_i.unwrap(), right_i.unwrap()) {
-      (Token::Digit(x), Token::Digit(y)) => {
-        // println!("Digit vs Digit {} {}", x, y);
-        if x < y {
-          return true
+fn is_right_order(first:&PacketData, second:&PacketData) -> Option<bool> {
+  match (first, second) {
+      (PacketData::Number(a), PacketData::Number(b)) => {
+        if a < b {
+          Some(true)
         }
-        else if x > y {
-          return false
-        }   
-        x1 += 1;
-        x2 += 1;
+        else if a > b {
+          Some(false)
+        }        
+        else {
+          None
+        }
       },
-      // left digit, right list      
-      (Token::Digit(n), Token::OpenList) => {
-        // convert left to list and continue where we were        
-        left.insert(x1, Token::OpenList);
-        left.insert(x1 +2, Token::CloseList);
-        // println!("Found Digit {} vs OpenList, convert left to list of one {:?}", n, &left);
-        // println!("Next comparison {:?} {:?}", left[x1], right[x2]);
-        // x1 += 1;
-        x2 += 1;
+      (PacketData::Number(a), PacketData::List(_packets)) => {
+        is_right_order(&PacketData::List(vec![PacketData::Number(*a)]), second)
       },
-      (Token::OpenList, Token::Digit(n)) => {
-        // convert right to list and continue where we were
-        right.insert(x2, Token::OpenList);
-        right.insert(x2 + 2, Token::CloseList);
-        // println!("Found List vs Digit {}, convert right to list of one {:?}", n, &right);
-        // println!("Next comparison {:?} {:?}", left[x1], right[x2]);
-        x1 += 1;
-        // x2 += 1;
+      (PacketData::List(_packets), PacketData::Number(b)) => {
+        is_right_order(first, &PacketData::List(vec![PacketData::Number(*b)]))
       },
-      (Token::Digit(_), Token::CloseList) => {
-        return false
-      },
-      (Token::CloseList, Token::Digit(_)) => {
-        return true
-      },
-      _ => {   
-        x1 += 1;
-        x2 += 1;           
+      (PacketData::List(packets_a), PacketData::List(packets_b)) => {
+        for x in 0..packets_a.len() {
+          let next_a = packets_a.get(x);
+          let next_b = packets_b.get(x);
+          if next_a.is_some() && next_b.is_some() {
+            // compare both
+            let member_order = is_right_order(next_a.unwrap(), next_b.unwrap());
+            if member_order.is_some() {
+              return member_order
+            }
+          }
+          else if next_a.is_none() && next_b.is_some() {
+            // first finished first
+            return Some(true)
+          }
+          else {
+            return Some(false)
+          }
+        }
+        Some(true)
       }
-    }   
-  }  
+  }
+}
+
+fn eval(tokens:&Vec<Token>) -> PacketData {
+  let mut stack:Vec<Vec<PacketData>> = vec![];
+  let mut token_iter = tokens.iter();
+  while token_iter.len() > 0 {
+    let t = token_iter.next().unwrap();
+    let slen = stack.len();
+    match t {
+      Token::Digit(x) => {
+        stack[slen-1].push(PacketData::Number(*x))
+      },   
+      Token::OpenList => {
+        stack.push(Vec::new());        
+      },  
+      Token::CloseList => {
+        if stack.len() > 1 {
+          let inner_list = stack.pop().unwrap();
+          stack[slen-2].push(PacketData::List(inner_list));
+        }
+        else {
+          // end
+        }
+      }
+      _ => {}
+    }
+  }
+  PacketData::List(stack.first().unwrap().clone())
 }
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
@@ -125,7 +135,11 @@ enum Token {
   Separator,
   CloseList
 }
-
+#[derive(PartialEq, Eq, Debug, Clone)]
+enum PacketData {
+  Number(u32),
+  List(Vec<PacketData>)
+}
 
 
 #[cfg(test)]
@@ -179,64 +193,55 @@ mod test {
   }
 
   #[test]
-  fn it_checks_order(){
-    // assert_eq!(
-    //   is_right_order(
-    //     &parse_list("[1,1,3,1,1]"), 
-    //     &parse_list("[1,1,5,1,1]")
-    //   ),
-    //   true
-    // );
-
+  fn it_evals_tokens(){
     assert_eq!(
-      is_right_order(
-        &parse_list("[[1],[2,3,4]]"), 
-        &parse_list("[[1],4]")
-      ),
-      true
+      eval(&parse_list("[1,1]")),
+      PacketData::List([PacketData::Number(1), PacketData::Number(1)].to_vec())
     );
 
-    // assert_eq!(
-    //   is_right_order(
-    //     &parse_list("[9]"), 
-    //     &parse_list("[[8,7,6]]")
-    //   ),
-    //   false
-    // );
-
-    // assert_eq!(
-    //   is_right_order(
-    //     &parse_list("[[4,4],4,4]"), 
-    //     &parse_list("[[4,4],4,4,4]")
-    //   ),
-    //   true
-    // );
-
-    // assert_eq!(
-    //   is_right_order(
-    //     &parse_list("[7,7,7,7]"), 
-    //     &parse_list("[7,7,7]")
-    //   ),
-    //   false
-    // );
-
-    // assert_eq!(
-    //   is_right_order(
-    //     &parse_list("[[[]]]"), 
-    //     &parse_list("[[]]")
-    //   ),
-    //   false
-    // );
-
-    // assert_eq!(
-    //   is_right_order(
-    //     &parse_list("[1,[2,[3,[4,[5,6,7]]]],8,9]"), 
-    //     &parse_list("[1,[2,[3,[4,[5,6,0]]]],8,9]")
-    //   ),
-    //   false
-    // );
-
+    assert_eq!(
+      eval(&parse_list("[1,[1]]")),
+      PacketData::List([
+        PacketData::Number(1), 
+        PacketData::List([
+          PacketData::Number(1)
+        ].to_vec())
+      ].to_vec())
+    );
+    assert_eq!(
+      eval(&parse_list("[[[]]]")),
+      PacketData::List([
+        PacketData::List([ 
+          PacketData::List([].to_vec())
+        ].to_vec())
+      ].to_vec())
+    );
   }
+
+  #[test]
+  fn it_checks_order(){
+    let cases = vec![
+      ("[1,1,3,1,1]", "[1,1,5,1,1]", Some(true)),
+      ("[[1],[2,3,4]]", "[[1],4]", Some(true)),
+      ("[9]", "[[8,7,6]]", Some(false)),
+      ("[[4,4],4,4]", "[[4,4],4,4,4]", Some(true)),
+      ("[7,7,7,7]", "[7,7,7]", Some(false)),
+      ("[]", "[3]", Some(true)),
+      ("[[[]]]", "[[]]", Some(false)),
+      ("[1,[2,[3,[4,[5,6,7]]]],8,9]", "[1,[2,[3,[4,[5,6,0]]]],8,9]", Some(false))
+    ];
+    for c in cases {
+      let a = eval(&parse_list(c.0));
+      let b = eval(&parse_list(c.1));
+      println!("Comparing {} {}", c.0, c.1);
+      assert_eq!(
+        is_right_order(&a, &b),
+        c.2
+      )
+    }
+  }
+
+  
 
 
 }
