@@ -1,19 +1,53 @@
+use std::{cmp::{Ordering}};
 
 pub fn distress_signal(data: &str) {
-  let pairs = parse(data);
+  part_one_sorted_pairs(data);
+  part_two_decoder_key(data);
+}
+
+fn part_one_sorted_pairs(data:&str){
+  let pairs = parse_in_pairs(data);
   let mut in_order_indices = 0;
   pairs.iter().enumerate().for_each(|(idx, pair)| {
     let ordered = is_right_order(&eval(&pair.0), &eval(&pair.1));
     if let Some(true) = ordered {
-      // println!("Right order at {}", idx+1);
       in_order_indices += idx + 1;
     }
   });
   println!("Part One. Sum of correct pair idx: {}", in_order_indices);
-
 }
 
-fn parse(data:&str) -> Vec<(Vec<Token>, Vec<Token>)> {
+fn part_two_decoder_key(data:&str){
+  let mut data_with_divider_packets = data.to_string();
+  data_with_divider_packets.push_str("\n[[2]]\n[[6]]\n");
+  let mut all_packets = parse_all(&data_with_divider_packets);
+  
+  all_packets.sort_by(|a,b| {
+    match is_right_order(a, b) {
+      Some(true) => Ordering::Less,
+      Some(false) => Ordering::Greater,
+      None => Ordering::Equal
+    }
+  });
+  let mut decoder_key = 1;
+  let first_index = all_packets.iter().position(|p| {
+    p == &PacketData::List([PacketData::List([PacketData::Number(2)].to_vec())].to_vec())
+  });
+  if first_index.is_some() {
+    decoder_key *= first_index.unwrap() + 1
+  }
+  else { panic!("First divider missing!")}
+  let second_index = all_packets.iter().position(|p| {
+    p == &PacketData::List([PacketData::List([PacketData::Number(6)].to_vec())].to_vec())
+  });
+  if second_index.is_some() {
+    decoder_key *= second_index.unwrap() + 1
+  }
+  else { panic!("Second divider missing!") }
+  println!("Part Two. Decoder key {}", decoder_key);
+}
+
+fn parse_in_pairs(data:&str) -> Vec<(Vec<Token>, Vec<Token>)> {
   let mut out = Vec::new();
   let pairs = data.split_terminator("\n\n");
   for pair in pairs {
@@ -22,6 +56,17 @@ fn parse(data:&str) -> Vec<(Vec<Token>, Vec<Token>)> {
       lines.get(0).expect("Missing part one").clone(), 
       lines.get(1).expect("Missing part two").clone())
     );
+  }
+  out
+}
+// now parse every line as a Packet
+fn parse_all(data:&str) -> Vec<PacketData> {
+  let lines = data.lines();
+  let mut out = Vec::new();
+  for line in lines {
+    if line.len() > 0 {
+      out.push(eval(&parse_list(line)));
+    }
   }
   out
 }
@@ -135,12 +180,13 @@ enum Token {
   Separator,
   CloseList
 }
-#[derive(PartialEq, Eq, Debug, Clone)]
+
+type Packets = Vec<PacketData>;
+#[derive(Eq, PartialEq, Debug, Clone)]
 enum PacketData {
   Number(u32),
-  List(Vec<PacketData>)
+  List(Packets)
 }
-
 
 #[cfg(test)]
 mod test {
@@ -240,8 +286,4 @@ mod test {
       )
     }
   }
-
-  
-
-
 }
