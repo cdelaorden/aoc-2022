@@ -8,10 +8,12 @@ use std::{
 pub fn regolith_reservoir(data: &str) {
     // part one
     calculate_sand_units_before_overflow(data);
+    // part two
+    calculate_sand_units_until_blocked(data);
 }
 
 fn calculate_sand_units_before_overflow(data: &str) {
-    let mut cave = generate_cave(data);
+    let mut cave = generate_cave(data, false);
     let mut sand_units = 0;    
     // println!("{}", cave);
     loop {
@@ -25,6 +27,27 @@ fn calculate_sand_units_before_overflow(data: &str) {
     // print!("\x1B[2J\x1B[1;1H");
     // print!("{}", cave);
     println!("Part One. Spawned sand: {}", sand_units);
+}
+
+fn calculate_sand_units_until_blocked(data: &str) {
+  let mut cave = generate_cave(data, true);  
+  let mut sand_units = 0;  
+  println!("{cave}");  
+  loop {
+    let rest_point = spawn_sand(&mut cave);
+    match rest_point {
+      None => break,
+      Some(p) => {
+        if p == cave.source {
+          break
+        }
+      }
+    }
+    sand_units += 1;
+  }
+  // print!("\x1B[2J\x1B[1;1H");
+  print!("{}", cave);
+  println!("Part Two. Source blocked after {}", sand_units);
 }
 
 fn spawn_sand(cave: &mut Cave) -> Option<Point> {
@@ -65,7 +88,6 @@ fn spawn_sand(cave: &mut Cave) -> Option<Point> {
               break None;
             }
             else {
-
               fill_point(cave, &curr, Fill::Sand);
               break Some(curr);
             }
@@ -73,8 +95,8 @@ fn spawn_sand(cave: &mut Cave) -> Option<Point> {
     }
 }
 
-fn generate_cave(data: &str) -> Cave {
-    let mut out = Cave::new(Point { x: 500, y: 0 });
+fn generate_cave(data: &str, with_floor: bool) -> Cave {
+    let mut out = Cave::new(Point { x: 500, y: 0 }, with_floor);
 
     let mut lines = data.lines().into_iter();
     while let Some(line) = lines.next() {
@@ -117,7 +139,7 @@ fn fill_point(cave: &mut Cave, at: &Point, fill: Fill) {
     }
 }
 
-fn check_bounds(cave: &mut Cave, at: &Point) {
+fn check_bounds(cave: &mut Cave, at: &Point) {        
     if at.x < cave.min_x {
         cave.min_x = at.x;
     }
@@ -125,7 +147,7 @@ fn check_bounds(cave: &mut Cave, at: &Point) {
         cave.max_x = at.x;
     }
     if at.y > cave.max_y {
-        cave.max_y = at.y;
+        cave.max_y = if cave.with_floor { at.y+2 } else { at.y };
     }
 }
 
@@ -134,7 +156,11 @@ fn is_free_at(cave: &Cave, point: &Point) -> bool {
 }
 
 fn is_out_bounds(cave: &Cave, point: &Point) -> bool {
+  if !cave.with_floor {
     point.x < cave.min_x || point.x > cave.max_x || point.y > cave.max_y
+  } else {
+    point.y > cave.max_y
+  }
 }
 
 fn get_fill(cave: &Cave, at: Point) -> Option<Fill> {
@@ -158,15 +184,17 @@ struct Cave {
     min_x: usize,
     max_x: usize,
     max_y: usize,
+    with_floor: bool
 }
 impl Cave {
-    fn new(sand_source: Point) -> Self {
+    fn new(sand_source: Point, with_floor: bool) -> Self {
         Cave {
             source: sand_source,
             occupied_points: HashMap::new(),
             min_x: sand_source.x,
             max_x: sand_source.x,
             max_y: sand_source.y,
+            with_floor
         }
     }
 }
