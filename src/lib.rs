@@ -1,5 +1,6 @@
 use std::env;
 use std::fs;
+use std::io::{stdin, stdout, Read, Write};
 
 pub fn read_input_file() -> (u32, String) {
     let args: Vec<String> = env::args().collect();
@@ -20,3 +21,13 @@ pub fn read_input_file() -> (u32, String) {
     }
     (day_number, data.unwrap())
 }
+
+
+
+pub fn pause() {
+    let mut stdout = stdout();
+    stdout.write(b"Press <Enter> to continue...").unwrap();
+    stdout.flush().unwrap();
+    stdin().read(&mut [0]).unwrap();
+}
+   

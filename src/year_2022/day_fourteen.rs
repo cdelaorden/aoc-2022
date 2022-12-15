@@ -42,6 +42,9 @@ fn calculate_sand_units_until_blocked(data: &str) {
             break;
         }
         sand_units += 1;
+        // print!("\x1B[2J\x1B[1;1H");
+        // print!("{}", cave);
+        // pause()
     }
     // print!("\x1B[2J\x1B[1;1H");
     print!("{}", cave);
@@ -56,7 +59,7 @@ fn spawn_sand(cave: &mut Cave) -> Option<Point> {
     }
     loop {
         if is_out_bounds(cave, &curr) {
-            println!("OOB");
+            println!("OOB at {:?}", curr);
             break None;
         }
         // keep going down if there are no obstacles
@@ -91,7 +94,6 @@ fn spawn_sand(cave: &mut Cave) -> Option<Point> {
                 break None;
             } else {
                 fill_point(cave, &curr, Fill::Sand);
-                extend_infinite_floor(cave, &curr);
                 break Some(curr);
             }
         }
@@ -139,35 +141,16 @@ fn add_infinite_floor(cave: &mut Cave) {
     if cave.with_floor {
         let floor_points = vec![
             Point {
-                x: cave.min_x - 5,
+                x: cave.min_x - 200,
                 y: cave.max_y + 2,
             },
             Point {
-                x: cave.max_x + 5,
+                x: cave.max_x + 200,
                 y: cave.max_y + 2,
             },
         ];
         fill_rock_path(cave, floor_points);
         cave.floor_y = cave.max_y + 2;
-    }
-}
-
-fn extend_infinite_floor(cave: &mut Cave, at: &Point) {
-    if !cave.with_floor {
-        return;
-    }
-    if at.x == cave.min_x || at.x == cave.max_x {
-        let floor_points = vec![
-            Point {
-                x: at.x - 1,
-                y: cave.floor_y,
-            },
-            Point {
-                x: at.x + 1,
-                y: cave.floor_y,
-            },
-        ];
-        fill_rock_path(cave, floor_points);
     }
 }
 
@@ -192,14 +175,18 @@ fn extend_bounds(cave: &mut Cave, at: &Point) {
 }
 
 fn is_free_at(cave: &Cave, point: &Point) -> bool {
-    return !cave.occupied_points.contains_key(point);
+    if cave.with_floor {
+        return !cave.occupied_points.contains_key(point) && point.y < cave.floor_y
+    } else {
+        return !cave.occupied_points.contains_key(point);
+    }
 }
 
 fn is_out_bounds(cave: &Cave, point: &Point) -> bool {
     if !cave.with_floor {
-        point.x < cave.min_x || point.x > cave.max_x || point.y > cave.max_y
+        point.x < cave.min_x || point.x > cave.max_x || point.y >= cave.max_y
     } else {
-        point.y > cave.max_y
+        point.y >= cave.floor_y
     }
 }
 
