@@ -17,6 +17,7 @@ fn main() {
         11 => year_2022::day_eleven::monkey_in_the_middle(&data),
         12 => year_2022::day_twelve::hill_climbing_algorithm(&data),
         13 => year_2022::day_thirteen::distress_signal(&data),
+        14 => year_2022::day_fourteen::regolith_reservoir(&data),
         other => {
             println!("{}", format!("Exercise {} not found", other));
             std::process::exit(1);
