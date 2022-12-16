@@ -5,16 +5,12 @@ use regex::Regex;
 pub fn beacon_exclusion_zone (data:&str) {
     let map = parse_data(data);
     // part 1
-    get_positions_beacon_not_present_in_row(&map, 2000000);
+    // get_positions_beacon_not_present_in_row(&map, 2000000);
+    // part 2 sample
+    println!("Tuning freq {}", get_tuning_frequency(&map, 4000000))
 }
 
 fn get_positions_beacon_not_present_in_row(map: &Map, row_y: i32) {
-    // TODO: 
-    //  - keep minX, manX
-    //  - keep minY, maxY
-    // use sensor info distance to store all "covered" points in a HashSet
-    // for a row at y, start at minX until minY and add
-    // all positions which are covered above
     let mut covered = 0;
     for x in map.min_x..=map.max_x {
         let p = Point { x, y: row_y };
@@ -27,6 +23,32 @@ fn get_positions_beacon_not_present_in_row(map: &Map, row_y: i32) {
         }
     }
     println!("Total covered at row {}: {}", row_y, covered);
+}
+
+fn get_tuning_frequency (map: &Map, limit: i32) -> i32{
+    // improvement: advance x, y when a sensor covers it!!
+    // better yet: precalculate intervals where points can't be
+    // like slices [-223232,252525], [2424,242424]
+    // and check if points fall within
+    for x in 0..limit {
+        for y in 0..limit {
+            let p = Point { x, y };
+            if is_not_empty(map, p) {
+                continue;
+            }
+            let mut covered = false;
+            for sensor_info in map.sensors.iter() {
+                if is_covered_by_sensor(&sensor_info, p) {
+                    covered = true;
+                    break;
+                }
+            }
+            if !covered {
+                return p.x * 4000000 + p.y
+            }
+        }
+    }
+    0
 }
 
 fn is_covered_by_sensor(sensor: &SensorInfo, at: Point) -> bool {
