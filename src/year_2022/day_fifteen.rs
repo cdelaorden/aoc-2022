@@ -71,19 +71,19 @@ fn parse_data(data:&str) -> Map {
         };
         out.sensors.push(sensor_info);        
         out.beacons.insert(beacon_at);
-        let line_min_x = sensor_at.x.min(beacon_at.x);
+        let line_min_x = sensor_at.x - sensor_info.distance;
         if line_min_x < out.min_x {
             out.min_x = line_min_x;
         }
-        let line_max_x = sensor_at.x.max(beacon_at.x);
+        let line_max_x = sensor_at.x + sensor_info.distance;
         if line_max_x > out.max_x {
             out.max_x = line_max_x;
         }
-        let line_min_y = sensor_at.y.min(beacon_at.y);
+        let line_min_y = sensor_at.y - sensor_info.distance;
         if line_min_y < out.min_y {
             out.min_y = line_min_y;
         }
-        let line_max_y = sensor_at.y.max(beacon_at.y);
+        let line_max_y = sensor_at.y + sensor_info.distance;
         if line_max_y > out.max_y {
             out.max_y = line_max_y;
         }
