@@ -19,6 +19,7 @@ fn main() {
         13 => year_2022::day_thirteen::distress_signal(&data),
         14 => year_2022::day_fourteen::regolith_reservoir(&data),
         15 => year_2022::day_fifteen::beacon_exclusion_zone(&data),
+        16 => year_2022::day_sixteen::proboscidea_volcanum(&data),
         other => {
             println!("{}", format!("Exercise {} not found", other));
             std::process::exit(1);
