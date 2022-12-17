@@ -5,9 +5,9 @@ use regex::Regex;
 pub fn beacon_exclusion_zone (data:&str) {
     let map = parse_data(data);
     // part 1
-    // get_positions_beacon_not_present_in_row(&map, 2000000);
+    get_positions_beacon_not_present_in_row(&map, 2000000);
     // part 2 sample
-    println!("Tuning freq {}", get_tuning_frequency(&map, 4000000))
+    println!("Tuning freq {}", get_tuning_frequency(&map, 4_000_000));
 }
 
 fn get_positions_beacon_not_present_in_row(map: &Map, row_y: i32) {
@@ -25,30 +25,70 @@ fn get_positions_beacon_not_present_in_row(map: &Map, row_y: i32) {
     println!("Total covered at row {}: {}", row_y, covered);
 }
 
-fn get_tuning_frequency (map: &Map, limit: i32) -> i32{
-    // improvement: advance x, y when a sensor covers it!!
-    // better yet: precalculate intervals where points can't be
-    // like slices [-223232,252525], [2424,242424]
-    // and check if points fall within
-    for x in 0..limit {
-        for y in 0..limit {
-            let p = Point { x, y };
-            if is_not_empty(map, p) {
-                continue;
+fn get_tuning_frequency (map: &Map, limit: i32) -> i64 {
+    // iterate over out ring of each sensor and
+    // check if any other sensor covers that one
+    println!("Total sensors: {}", map.sensors.len());
+    for (index, s) in map.sensors.iter().enumerate() {
+        let outer_points = get_sensor_outer_ring(s);
+        println!("Outer points of sensor {} {}", index, outer_points.len());
+        'inner: for p in outer_points {
+            if p.x < 0 || p.x > limit || p.y < 0 || p.y > limit {continue 'inner};
+            if map.sensors.iter().any(|s| is_covered_by_sensor(s, p)){
+                // point is covered by another sensor
+                continue 'inner;
             }
-            let mut covered = false;
-            for sensor_info in map.sensors.iter() {
-                if is_covered_by_sensor(&sensor_info, p) {
-                    covered = true;
-                    break;
-                }
-            }
-            if !covered {
-                return p.x * 4000000 + p.y
-            }
+            // else we found the solution
+            println!("Found sol at {:?}", p);
+            return p.x as i64 * 4_000_000 + p.y as i64;
         }
     }
-    0
+    panic!("get_tuning_frequency not found")
+}
+
+/*
+             #            
+            ###
+           ##S##
+            ###
+             #            
+*/
+fn get_sensor_outer_ring(sensor: &SensorInfo) -> Vec<Point> {
+    let r = sensor.distance + 1;
+    let mut distinct_points: HashSet<Point> = HashSet::new();
+    for x in 0..=r {        
+        let dy = r - x;
+        distinct_points.insert(Point {
+            x: sensor.sensor_at.x + x,
+            y: sensor.sensor_at.y + dy
+        });
+        distinct_points.insert( Point {
+            x: sensor.sensor_at.x + x,
+            y: sensor.sensor_at.y + dy
+        });
+        // up right
+        distinct_points.insert(Point {
+                x: sensor.sensor_at.x + x,
+                y: sensor.sensor_at.y - dy
+        });
+        distinct_points.insert(Point {
+            x: sensor.sensor_at.x - x,
+            y: sensor.sensor_at.y + dy
+        });        
+    }
+    distinct_points.into_iter().collect()
+}
+
+#[test]
+fn calculates_outer_ring(){
+    let s:SensorInfo = SensorInfo { 
+        sensor_at: Point { x: 0, y: 0 }, 
+        beacon_at: Point { x: 3, y: 0 }, 
+        distance: 5
+    };
+    let outer_ring = get_sensor_outer_ring(&s);
+    println!("{:#?}", outer_ring);
+    
 }
 
 fn is_covered_by_sensor(sensor: &SensorInfo, at: Point) -> bool {
